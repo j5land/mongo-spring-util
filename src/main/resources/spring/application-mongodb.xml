@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context-3.2.xsd
+       http://www.springframework.org/schema/data/mongo
+       http://www.springframework.org/schema/data/mongo/spring-mongo-1.0.xsd">
+       
+		<bean  id="mongo" class="org.springframework.data.mongodb.core.MongoFactoryBean">
+			<property name="host" value="192.168.3.203"></property>
+			<property name="port" value="27017"></property>
+			<property name="mongoOptions" ref="mongoOptions"></property>
+		</bean>
+		<bean  id="mongoOptions" class="com.mongodb.MongoOptions">
+			<property name="connectionsPerHost" value="10"></property>
+			<property name="threadsAllowedToBlockForConnectionMultiplier" value="5"></property>
+		    <property name="maxWaitTime" value="12000"></property>
+	   	    <property name="connectTimeout" value="0"></property>
+		    <property name="socketTimeout" value="0"></property>
+		    <property name="socketKeepAlive" value="false"></property>  
+		</bean>
+		<bean  id="mongoDbFactory" class="org.springframework.data.mongodb.core.SimpleMongoDbFactory">
+			<constructor-arg ref="mongo" />
+			<constructor-arg value="spider_film"/>
+			<constructor-arg ref="credentials" />
+		</bean>
+		<bean  id="credentials" class="org.springframework.data.authentication.UserCredentials">
+	 	  	  <constructor-arg   name="username" value="admin" /> 
+	          <constructor-arg   name="password" value="admin" /> 
+		</bean>
+		<!-- 	MongoDB GridFS Template -->
+		<mongo:mapping-converter id="converter" />
+		<bean name="gridFsTemplate"
+			class="org.springframework.data.mongodb.gridfs.GridFsTemplate">
+			<constructor-arg ref="mongoDbFactory" />
+			<constructor-arg ref="converter" />
+		</bean>
+		<bean id="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
+			<constructor-arg name="mongoDbFactory" ref="mongoDbFactory" />
+			<constructor-arg name="mongoConverter" ref="mappingMongoConverter" />
+		</bean>
+		<!-- 	配置mongodb映射类型 -->
+		<bean id="mappingMongoConverter"
+			class="org.springframework.data.mongodb.core.convert.MappingMongoConverter">
+			<constructor-arg name="mongoDbFactory" ref="mongoDbFactory" />
+			<constructor-arg name="mappingContext" ref="mappingContext" />
+			<property name="typeMapper" ref="defaultMongoTypeMapper" />
+		</bean>
+		<!-- 	默认Mongodb类型映射 -->
+		<bean id="defaultMongoTypeMapper"
+			class="org.springframework.data.mongodb.core.convert.DefaultMongoTypeMapper">
+			<constructor-arg name="typeKey"><null /></constructor-arg>
+		</bean>
+		<bean id="mappingContext" class="org.springframework.data.mongodb.core.mapping.MongoMappingContext" />
+</beans> 
